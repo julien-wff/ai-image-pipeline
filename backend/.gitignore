@@ -8,3 +8,10 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Uploaded and processed images
+uploads/
+processed/
+
+# Database files
+*.db
