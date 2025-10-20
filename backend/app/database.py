@@ -31,23 +31,38 @@ class ProcessingStatus(str, enum.Enum):
     FAILED = "failed"
 
 
+class ImageLabel(str, enum.Enum):
+    TEXT = "text"
+    PAINTING = "painting"
+    PHOTO = "photo"
+    SKETCH = "sketch"
+    SCHEMATIC = "schematic"
+
+
 class ImageRecord(Base):
     __tablename__ = "images"
 
+    # Technical fields
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    filename: Mapped[str] = mapped_column(String, nullable=False)
-    original_path: Mapped[str] = mapped_column(String, nullable=False)
-    processed_path: Mapped[str] = mapped_column(String, nullable=True)
+    uploaded_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
     status: Mapped[ProcessingStatus] = mapped_column(
         SQLEnum(ProcessingStatus), default=ProcessingStatus.PENDING
     )
-    uploaded_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
+
+    # File
+    original_filename: Mapped[str] = mapped_column(String, nullable=False)
+    filename: Mapped[str] = mapped_column(String, nullable=False)
+    upload_path: Mapped[str] = mapped_column(String, nullable=False)
+    processed_path: Mapped[str] = mapped_column(String, nullable=True)
+
+    # Processing details
     processed_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     processing_time: Mapped[float] = mapped_column(Float, nullable=True)  # in seconds
     error_message: Mapped[str] = mapped_column(Text, nullable=True)
 
-    # AI Model results (JSON or text fields)
-    model_results: Mapped[str] = mapped_column(Text, nullable=True)
+    # Image attributes
+    label: Mapped[ImageLabel] = mapped_column(SQLEnum(ImageLabel), nullable=True)
+    caption: Mapped[str] = mapped_column(Text, nullable=True)
 
 
 def init_db():

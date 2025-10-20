@@ -53,29 +53,41 @@ async def process_image(image_id: int):
             image_id, ProcessingStatus.PROCESSING, "Starting processing...", 0
         )
 
-        # Initialize results dictionary
-        results = {}
-
-        # Step 2: Image Classification (33%)
+        # Step 1: Image Classification
+        image.label = apply_image_classification(image.upload_path)
+        db.commit()
         await notify_progress(
             image_id, ProcessingStatus.PROCESSING, "Classifying image...", 0.33
         )
-        results["classification"] = apply_image_classification(image.original_path)
 
-        # Step 3: Denoising (66%)
+        # Step 2: Denoising
+        processed_path = os.path.join(settings.PROCESSED_DIR, image.filename)
+        denoising_result = apply_denoising(image.upload_path, processed_path)
+
+        if not denoising_result.success:
+            raise Exception(denoising_result.error or "Denoising failed")
+
+        image.denoised_path = processed_path
+        db.commit()
+
         await notify_progress(
             image_id, ProcessingStatus.PROCESSING, "Applying denoising...", 0.66
         )
-        processed_path = os.path.join(
-            settings.PROCESSED_DIR, f"processed_{Path(image.original_path).name}"
-        )
-        results["denoising"] = apply_denoising(image.original_path, processed_path)
 
-        # Step 4: Captioning (90%)
+        # Step 3: Captioning
+        captionning_results = apply_captionning(image.upload_path)
+
+        if not captionning_results.success:
+            raise Exception(
+                captionning_results.error or "Captioning failed: Unknown error"
+            )
+
+        image.caption = captionning_results.caption or ""
+        db.commit()
+
         await notify_progress(
             image_id, ProcessingStatus.PROCESSING, "Generating captions...", 0.9
         )
-        results["captioning"] = apply_captionning(image.original_path)
 
         # Update database with results
         processing_time = time.time() - start_time
@@ -83,7 +95,6 @@ async def process_image(image_id: int):
         image.processed_path = processed_path
         image.processed_at = datetime.now()
         image.processing_time = processing_time
-        image.model_results = json.dumps(results)
         db.commit()
 
         # Notify completion
@@ -92,7 +103,6 @@ async def process_image(image_id: int):
             ProcessingStatus.COMPLETED,
             "Processing completed successfully",
             1.0,
-            results,
         )
 
     except Exception as e:

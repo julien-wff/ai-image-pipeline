@@ -3,14 +3,24 @@ import { SvelteMap } from 'svelte/reactivity';
 
 export interface Image {
     localFile: File | null;
-    apiFile: UploadImageResponse | null;
+    apiFile: ApiImage | null;
 }
 
-interface UploadImageResponse {
-    id: number,
-    filename: string,
-    status: string,
-    message: string,
+export type ImageStatus = 'pending' | 'processing' | 'completed' | 'failed';
+export type ImageLabel = 'text' | 'painting' | 'photo' | 'sketch' | 'schematic';
+
+export interface ApiImage {
+    id: number;
+    status: ImageStatus;
+    uploaded_at: string;
+    original_filename: string;
+    upload_path: string;
+    processed_path: string | null;
+    processed_at: string | null;
+    processing_time: number | null;
+    error_message: string | null;
+    label: ImageLabel | null;
+    caption: string | null;
 }
 
 class AppState {
@@ -33,7 +43,7 @@ class AppState {
 
     async uploadImages(files: FileList) {
         this.#uploadTaskCount++;
-        const newIDs = Array.from({length: files.length}).map((_, i) => 1e8 + (this.#uploadTaskCount * 1000) + i);
+        const newIDs = Array.from({ length: files.length }).map((_, i) => 1e8 + (this.#uploadTaskCount * 1000) + i);
 
         [ ...files ].forEach((file, i) => this.#images.set(newIDs[i], {
             localFile: file,
@@ -49,7 +59,7 @@ class AppState {
                 method: 'POST',
                 body,
             });
-            const data: UploadImageResponse = await res.json();
+            const data: ApiImage = await res.json();
 
             this.#images.delete(id);
             this.#images.set(data.id, {

@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "./uploads"
     PROCESSED_DIR: str = "./processed"
     MAX_UPLOAD_SIZE: int = 10 * 1024 * 1024  # 10MB
-    ALLOWED_EXTENSIONS: set = {".jpg", ".jpeg", ".png", ".webp"}
+    ALLOWED_EXTENSIONS: set = {".jpg", ".jpeg", ".png"}
 
     # Processing
     MAX_CONCURRENT_PROCESSES: int = 3
