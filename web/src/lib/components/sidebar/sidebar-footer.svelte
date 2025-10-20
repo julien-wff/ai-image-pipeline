@@ -2,25 +2,19 @@
     import * as Sidebar from '$lib/components/ui/sidebar';
     import { Button } from '$lib/components/ui/button';
     import UploadIcon from '@lucide/svelte/icons/upload';
+    import { useAppState } from '$lib/stores/app.context.svelte';
 
     let fileInput: HTMLInputElement;
+    const state = useAppState();
 
     function handleUploadBtnClick() {
         fileInput.click();
     }
 
-    async function handleFileChange(event: Event) {
+    function handleFileChange(event: Event) {
         const files = fileInput.files;
         if (files) {
-            for (const file of files) {
-                const body = new FormData();
-                body.append('file', file);
-
-                await fetch('/api/images/upload', {
-                    method: 'POST',
-                    body,
-                });
-            }
+            state.uploadImages(files);
         }
     }
 </script>
