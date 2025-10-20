@@ -1,12 +1,14 @@
 import time
-import json
 from datetime import datetime
-from pathlib import Path
 import os
+from typing import Optional
+import json
 
 from app.database import SessionLocal, ImageRecord, ProcessingStatus
 from app.config import settings
 from app.services.websocket_manager import manager
+from app.schemas import ImageResponse
+
 from app.services.ai_models import (
     apply_image_classification,
     apply_denoising,
@@ -15,21 +17,15 @@ from app.services.ai_models import (
 
 
 async def notify_progress(
-    image_id: int,
-    status: ProcessingStatus,
-    message: str,
-    progress: float | None = None,
-    model_results: dict | None = None,
+        image: ImageRecord,
+        msg: str | None = None,
+        progress: float | None = None,
 ):
     """Send progress update via WebSocket"""
     update = {
-        "type": "processing_update",
-        "image_id": image_id,
-        "status": status.value,
-        "message": message,
+        "image": json.loads(ImageResponse.from_model(image).model_dump_json()),
+        "message": msg,
         "progress": progress,
-        "model_results": model_results,
-        "timestamp": datetime.now().isoformat(),
     }
     await manager.broadcast(update)
 
@@ -38,7 +34,7 @@ async def process_image(image_id: int):
     """Process image through AI pipeline"""
     db = SessionLocal()
     start_time = time.time()
-    image = None
+    image: Optional[ImageRecord] = None
 
     try:
         # Get image record
@@ -49,16 +45,12 @@ async def process_image(image_id: int):
         # Update status to processing
         image.status = ProcessingStatus.PROCESSING
         db.commit()
-        await notify_progress(
-            image_id, ProcessingStatus.PROCESSING, "Starting processing...", 0
-        )
+        await notify_progress(image, "Classifying image...", .3)
 
         # Step 1: Image Classification
         image.label = apply_image_classification(image.upload_path)
         db.commit()
-        await notify_progress(
-            image_id, ProcessingStatus.PROCESSING, "Classifying image...", 0.33
-        )
+        await notify_progress(image, "Applying denoising...", .6)
 
         # Step 2: Denoising
         processed_path = os.path.join(settings.PROCESSED_DIR, image.filename)
@@ -70,26 +62,17 @@ async def process_image(image_id: int):
         image.denoised_path = processed_path
         db.commit()
 
-        await notify_progress(
-            image_id, ProcessingStatus.PROCESSING, "Applying denoising...", 0.66
-        )
+        await notify_progress(image, "Captioning image...", .9)
 
         # Step 3: Captioning
-        captionning_results = apply_captionning(image.upload_path)
+        captioning_results = apply_captionning(image.upload_path)
 
-        if not captionning_results.success:
+        if not captioning_results.success:
             raise Exception(
-                captionning_results.error or "Captioning failed: Unknown error"
+                captioning_results.error or "Captioning failed: Unknown error"
             )
 
-        image.caption = captionning_results.caption or ""
-        db.commit()
-
-        await notify_progress(
-            image_id, ProcessingStatus.PROCESSING, "Generating captions...", 0.9
-        )
-
-        # Update database with results
+        image.caption = captioning_results.caption or ""
         processing_time = time.time() - start_time
         image.status = ProcessingStatus.COMPLETED
         image.processed_path = processed_path
@@ -98,12 +81,7 @@ async def process_image(image_id: int):
         db.commit()
 
         # Notify completion
-        await notify_progress(
-            image_id,
-            ProcessingStatus.COMPLETED,
-            "Processing completed successfully",
-            1.0,
-        )
+        await notify_progress(image, None, 1.0)
 
     except Exception as e:
         # Handle errors
@@ -113,9 +91,7 @@ async def process_image(image_id: int):
             image.processed_at = datetime.now()
             db.commit()
 
-        await notify_progress(
-            image_id, ProcessingStatus.FAILED, f"Processing failed: {str(e)}", None
-        )
+        await notify_progress(image, f"Processing failed: {str(e)}")
 
     finally:
         db.close()

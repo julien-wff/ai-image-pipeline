@@ -4,6 +4,8 @@ import { SvelteMap } from 'svelte/reactivity';
 export interface Image {
     localFile: File | null;
     apiFile: ApiImage | null;
+    message?: string | null;
+    progress?: number | null;
 }
 
 export type ImageStatus = 'pending' | 'processing' | 'completed' | 'failed';
@@ -23,12 +25,33 @@ export interface ApiImage {
     caption: string | null;
 }
 
+export interface WebsocketImageMessage {
+    image: ApiImage;
+    message: string | null;
+    progress: number | null;
+}
+
 class AppState {
     #images = new SvelteMap<number, Image>();
     #uploadTaskCount = 0;
 
     get images() {
         return [ ...this.#images.values() ];
+    }
+
+    subscribe() {
+        const ws = new WebSocket('/ws/images');
+        ws.onmessage = (event) => {
+            const data: WebsocketImageMessage = JSON.parse(event.data);
+            this.#images.set(data.image.id, {
+                localFile: this.#images.get(data.image.id)?.localFile || null,
+                apiFile: data.image,
+                message: data.message,
+                progress: data.progress,
+            });
+        };
+
+        return () => ws.close();
     }
 
     async fetchImages() {
