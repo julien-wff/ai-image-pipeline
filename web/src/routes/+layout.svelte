@@ -2,7 +2,7 @@
     import '../app.css';
     import favicon from '$lib/assets/favicon.svg';
     import * as Sidebar from '$lib/components/ui/sidebar';
-    import AppSidebar from '$lib/components/app-sidebar.svelte';
+    import AppSidebar from '$lib/components/sidebar/app-sidebar.svelte';
 
     let { children } = $props();
 </script>
@@ -15,7 +15,6 @@
 <Sidebar.Provider>
     <AppSidebar/>
     <main>
-        <Sidebar.Trigger/>
         {@render children?.()}
     </main>
 </Sidebar.Provider>

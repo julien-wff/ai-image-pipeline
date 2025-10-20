@@ -11,6 +11,7 @@
     import { Button } from '$lib/components/ui/button';
     import { Input } from '$lib/components/ui/input';
     import { Separator } from '$lib/components/ui/separator';
+    import SidebarFooter from '$lib/components/sidebar/sidebar-footer.svelte';
 
     const navData = [
         {
@@ -104,15 +105,7 @@
         </Sidebar.Group>
     </Sidebar.Content>
 
-    <Sidebar.Footer>
-        <input id="file-upload" type="file" multiple accept="image/*" class="hidden"/>
-        <label for="file-upload" class="w-full">
-            <Button class="w-full justify-start h-8" size="sm" variant="default">
-                <UploadIcon class="mr-2 h-4 w-4"/>
-                Upload images
-            </Button>
-        </label>
-    </Sidebar.Footer>
+    <SidebarFooter/>
 
     <Sidebar.Rail/>
 </Sidebar.Root>
