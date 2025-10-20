@@ -4,7 +4,7 @@ from app.services.websocket_manager import manager
 router = APIRouter()
 
 
-@router.websocket("/updates")
+@router.websocket("/images")
 async def websocket_endpoint(websocket: WebSocket):
     """WebSocket endpoint for real-time processing updates"""
     await manager.connect(websocket)

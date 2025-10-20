@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 import os
 
 from app.database import init_db
@@ -32,6 +33,12 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
+
+# Trusted Host middleware
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=["*"],
 )
 
 # Create necessary directories

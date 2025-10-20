@@ -11,6 +11,7 @@ export default defineConfig({
             '/processed': 'http://localhost:8000',
             '/docs': 'http://localhost:8000',
             '/openapi.json': 'http://localhost:8000',
+            '/ws': 'ws://localhost:8000'
         },
     },
 });
