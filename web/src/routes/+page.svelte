@@ -1,7 +1,17 @@
 <script lang="ts">
     import { useAppState } from '$lib/stores/app.context.svelte';
+    import ImageCard from '$lib/components/image/image-card.svelte';
+    import { onMount } from 'svelte';
 
     const state = useAppState();
+
+    onMount(() => {
+        return state.subscribe();
+    });
 </script>
 
-<pre><code>{JSON.stringify(state.images, null, 2)}</code></pre>
+<div class="p-4 flex gap-4 flex-wrap">
+    {#each state.images.toReversed() as image}
+        <ImageCard {image}/>
+    {/each}
+</div>

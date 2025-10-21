@@ -43,8 +43,14 @@ class AppState {
         const ws = new WebSocket('/ws/images');
         ws.onmessage = (event) => {
             const data: WebsocketImageMessage = JSON.parse(event.data);
+
+            const image = this.#images.get(data.image.id);
+            if (!image) {
+                return;
+            }
+
             this.#images.set(data.image.id, {
-                localFile: this.#images.get(data.image.id)?.localFile || null,
+                ...image,
                 apiFile: data.image,
                 message: data.message,
                 progress: data.progress,
@@ -92,6 +98,23 @@ class AppState {
         }
 
         this.#uploadTaskCount--;
+    }
+
+    async deleteImage(id: number) {
+        const image = this.#images.get(id);
+        if (!image) {
+            return;
+        }
+
+        this.#images.delete(id);
+
+        const res = await fetch(`/api/images/${id}`, {
+            method: 'DELETE',
+        });
+
+        if (!res.ok) {
+            this.#images.set(id, image);
+        }
     }
 }
 
