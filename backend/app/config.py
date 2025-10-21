@@ -11,6 +11,11 @@ class Settings(BaseSettings):
     MAX_UPLOAD_SIZE: int = 10 * 1024 * 1024  # 10MB
     ALLOWED_EXTENSIONS: set = {".jpg", ".jpeg", ".png"}
 
+    # Models
+    CLASSIFIER_MODEL_PATH: str = "./models/classifier.keras"
+    DENOISER_MODEL_PATH: str = "./models/denoiser.keras"
+    CAPTIONER_MODEL_PATH: str = "./models/captioner.keras"
+
     # Processing
     MAX_CONCURRENT_PROCESSES: int = 3
 

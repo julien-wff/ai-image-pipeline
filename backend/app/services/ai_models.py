@@ -3,21 +3,30 @@ AI Model implementations for image processing pipeline.
 These are placeholder implementations that you can replace with actual AI models.
 """
 
-import random
 from PIL import Image
 import time
 from app.database import ImageLabel
+from app.config import settings
+import keras
+
+
+classificationModel: keras.Model = keras.models.load_model(settings.CLASSIFIER_MODEL_PATH)
+denoisingModel: keras.Model = keras.models.load_model(settings.DENOISER_MODEL_PATH)
 
 
 def apply_image_classification(image_path: str) -> ImageLabel:
     """
     Placeholder for image classification model.
     """
-    time.sleep(1)  # Simulate processing time
+    img = Image.open(image_path).convert("RGB")
+    img = img.resize((180, 180))
+    img_array = keras.preprocessing.image.img_to_array(img)
+    img_array = img_array / 255.0
+    img_array = img_array.reshape((1, 180, 180, 3))
 
-    # Mock results
-    classes = [label for label in ImageLabel]
-    return random.choice(classes)
+    preds = classificationModel.predict(img_array)
+    class_idx = preds.argmax()
+    return [label for label in ImageLabel][class_idx]
 
 
 class DenoisingResult:
@@ -30,14 +39,23 @@ def apply_denoising(input_path: str, output_path: str) -> DenoisingResult:
     """
     Placeholder for image denoising.
     """
-    time.sleep(1)  # Simulate processing time
 
     try:
-        # Open image
-        img = Image.open(input_path)
+        # Open and preprocess image
+        img = Image.open(input_path).convert("RGB")
+        img = img.resize((256, 256))
+        img_array = keras.preprocessing.image.img_to_array(img)
+        img_array = img_array / 255.0
+        img_array = img_array.reshape((1, 256, 256, 3))
 
-        # Save processed image
-        img.save(output_path)
+        # Apply denoising model
+        denoised_array = denoisingModel.predict(img_array)
+        denoised_array = denoised_array.reshape((256, 256, 3))
+        denoised_array = (denoised_array * 255).astype('uint8')
+
+        # Save denoised image
+        denoised_img = Image.fromarray(denoised_array)
+        denoised_img.save(output_path)
 
         return DenoisingResult(success=True)
     except Exception as e:

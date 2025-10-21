@@ -32,11 +32,11 @@ class ProcessingStatus(str, enum.Enum):
 
 
 class ImageLabel(str, enum.Enum):
-    TEXT = "text"
     PAINTING = "painting"
     PHOTO = "photo"
-    SKETCH = "sketch"
     SCHEMATIC = "schematic"
+    SKETCH = "sketch"
+    TEXT = "text"
 
 
 class ImageRecord(Base):
