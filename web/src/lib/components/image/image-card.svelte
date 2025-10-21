@@ -7,6 +7,7 @@
     import { fade } from 'svelte/transition';
     import LabelBadge from '$lib/components/image/label-badge.svelte';
     import Trash2 from '@lucide/svelte/icons/trash-2';
+    import { onDestroy } from 'svelte';
 
     interface Props {
         image: Image;
@@ -14,13 +15,32 @@
 
     let { image }: Props = $props();
 
-    const state = useAppState();
+    const appState = useAppState();
+
+    let objectURL = $state<string | null>(null);
 
     const imageURL = $derived(
         image.apiFile?.processed_path
         || image.apiFile?.upload_path
-        || (image.localFile && URL.createObjectURL(image.localFile)),
+        || objectURL
     );
+
+    $effect(() => {
+        if (image.localFile && !image.apiFile) {
+            if (!objectURL) {
+                objectURL = URL.createObjectURL(image.localFile);
+            }
+        } else if (objectURL) {
+            URL.revokeObjectURL(objectURL);
+            objectURL = null;
+        }
+    });
+
+    onDestroy(() => {
+        if (objectURL) {
+            URL.revokeObjectURL(objectURL);
+        }
+    });
 
     let progress = new Tween(0, {
         duration: 300,
@@ -42,7 +62,7 @@
     <ContextMenu.Trigger>
         <Card.Root class="w-54 py-0 pb-2 overflow-clip gap-2">
             <div class="relative w-full h-54 aspect-square">
-                <img class="w-full h-full object-cover" src={imageURL} alt="Upload"/>
+                <img class="w-full h-full object-fill" src={imageURL} alt="Upload"/>
 
                 {#if image.apiFile?.label}
                     <div in:fade={{duration: 200}}>
@@ -50,7 +70,7 @@
                     </div>
                 {/if}
 
-                {#if image.apiFile?.status !== 'completed'}
+                {#if !image.apiFile || image.apiFile.status !== 'completed'}
                     <progress class="absolute left-0 bottom-0 w-full"
                               value={progress.current}
                               out:fade={{duration: 200}}
@@ -65,7 +85,7 @@
     </ContextMenu.Trigger>
     <ContextMenu.Content>
         <ContextMenu.Item disabled={!image.apiFile?.id}
-                          onclick={() => state.deleteImage(image.apiFile!.id)}
+                          onclick={() => appState.deleteImage(image.apiFile!.id)}
                           variant="destructive">
             <Trash2 class="w-4 h-4"/>
             Delete
