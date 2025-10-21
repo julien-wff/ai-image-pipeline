@@ -36,7 +36,9 @@ class AppState {
     #uploadTaskCount = 0;
 
     get images() {
-        return [ ...this.#images.values() ];
+        return [ ...this.#images.entries() ]
+            .toSorted(([ida], [idb]) => idb - ida)
+            .map(([_, img]) => img);
     }
 
     subscribe() {

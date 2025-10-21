@@ -11,7 +11,7 @@
 </script>
 
 <div class="p-4 flex gap-4 flex-wrap">
-    {#each state.images.toReversed() as image}
+    {#each state.images as image}
         <ImageCard {image}/>
     {/each}
 </div>
