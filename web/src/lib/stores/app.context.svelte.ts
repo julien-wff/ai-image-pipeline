@@ -34,12 +34,9 @@ export interface WebsocketImageMessage {
 class AppState {
     #images = new SvelteMap<number, Image>();
     #uploadTaskCount = 0;
-
-    get images() {
-        return [ ...this.#images.entries() ]
-            .toSorted(([ida], [idb]) => idb - ida)
-            .map(([_, img]) => img);
-    }
+    readonly images = $derived([ ...this.#images.entries() ]
+        .toSorted(([ ida ], [ idb ]) => idb - ida)
+        .map(([ _, img ]) => img));
 
     subscribe() {
         const ws = new WebSocket('/ws/images');
