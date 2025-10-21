@@ -94,6 +94,7 @@ class AppState {
             this.#images.set(data.id, {
                 localFile: file,
                 apiFile: data,
+                progress: 0,
             });
         }
 
