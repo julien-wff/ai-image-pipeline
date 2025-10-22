@@ -29,23 +29,15 @@
             ],
         },
         {
-            title: 'Type',
+            title: 'Labels',
             icon: FileTextIcon,
             items: [
                 {
-                    title: 'Photo',
-                    isActive: false,
+                    title: 'All',
+                    isActive: true,
                 },
                 {
-                    title: 'Diagram',
-                    isActive: false,
-                },
-                {
-                    title: 'Text document',
-                    isActive: false,
-                },
-                {
-                    title: 'Painting',
+                    title: 'Photos only',
                     isActive: false,
                 },
             ],
