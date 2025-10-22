@@ -62,6 +62,7 @@ class ImageRecord(Base):
 
     # Image attributes
     label: Mapped[ImageLabel] = mapped_column(SQLEnum(ImageLabel), nullable=True)
+    labels_confidence: Mapped[str] = mapped_column(Text, nullable=True)
     caption: Mapped[str] = mapped_column(Text, nullable=True)
 
 

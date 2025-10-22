@@ -14,7 +14,13 @@ classificationModel: keras.Model = keras.models.load_model(settings.CLASSIFIER_M
 denoisingModel: keras.Model = keras.models.load_model(settings.DENOISER_MODEL_PATH)
 
 
-def apply_image_classification(image_path: str) -> ImageLabel:
+class ImageClassificationResult:
+    def __init__(self, label: ImageLabel, classes: dict[ImageLabel, float]):
+        self.classes = classes
+        self.label = label
+
+
+def apply_image_classification(image_path: str) -> ImageClassificationResult:
     """
     Placeholder for image classification model.
     """
@@ -25,8 +31,12 @@ def apply_image_classification(image_path: str) -> ImageLabel:
     img_array = img_array.reshape((1, 180, 180, 3))
 
     preds = classificationModel.predict(img_array)
+    labels = [label for label in ImageLabel]
     class_idx = preds.argmax()
-    return [label for label in ImageLabel][class_idx]
+    return ImageClassificationResult(
+        labels[class_idx],
+        {labels[i]: float(preds[0][i]) for i in range(len(labels))}
+    )
 
 
 class DenoisingResult:

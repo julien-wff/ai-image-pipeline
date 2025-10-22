@@ -48,7 +48,12 @@ async def process_image(image_id: int):
         await notify_progress(image, "Classifying image...", .3)
 
         # Step 1: Image Classification
-        image.label = apply_image_classification(image.upload_path)
+        classification_results = apply_image_classification(image.upload_path)
+        image.label = classification_results.label
+        image.labels_confidence = json.dumps({
+            label.value: confidence
+            for label, confidence in classification_results.classes.items()
+        })
         db.commit()
         await notify_progress(image, "Applying denoising...", .6)
 

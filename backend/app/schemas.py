@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional, Dict, Any
 from app.database import ImageRecord, ProcessingStatus, ImageLabel
+import json
 
 
 class ImageResponse(BaseModel):
@@ -22,6 +23,7 @@ class ImageResponse(BaseModel):
 
     # Image attributes
     label: Optional[ImageLabel]
+    labels_confidence: Optional[Dict[ImageLabel, float]]
     caption: Optional[str]
 
     class Config:
@@ -40,6 +42,7 @@ class ImageResponse(BaseModel):
             processing_time=model.processing_time,
             error_message=model.error_message,
             label=model.label,
+            labels_confidence=json.loads(model.labels_confidence) if model.labels_confidence else None,
             caption=model.caption,
         )
 
