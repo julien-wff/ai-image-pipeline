@@ -4,11 +4,15 @@
     import * as Sidebar from '$lib/components/ui/sidebar';
     import AppSidebar from '$lib/components/sidebar/app-sidebar.svelte';
     import { setAppState } from '$lib/stores/app.context.svelte';
+    import { onMount } from 'svelte';
 
     let { children } = $props();
 
     const state = setAppState();
-    state.fetchImages();
+
+    onMount(() => {
+        state.fetchImages();
+    });
 </script>
 
 <svelte:head>
