@@ -9,9 +9,10 @@ wheels/
 # Virtual environments
 .venv
 
-# Uploaded and processed images
+# Uploaded and processed images + static files
 uploads/
 processed/
+static/
 
 # Database files
 *.db
